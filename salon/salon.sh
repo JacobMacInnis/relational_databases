@@ -28,12 +28,14 @@ MAIN_MENU() {
   if [[ ! $SERVICE_ID_SELECTED =~ ^[0-9]+$ ]]
   then
     MAIN_MENU "That is not a valid service number."
+    return 
   fi
 
   VALID_SERVICE=$($PSQL "SELECT name FROM services WHERE service_id = $SERVICE_ID_SELECTED")
   if [[ -z $VALID_SERVICE ]]
   then 
     MAIN_MENU "That is not a valid service number."
+    return 
   fi
 
   echo -e "\nWhat's your phone number?"
@@ -50,9 +52,14 @@ MAIN_MENU() {
   fi
   # get customer_id
   CUSTOMER_ID=$($PSQL "SELECT customer_id FROM customers WHERE phone = '$CUSTOMER_PHONE'")
-  echo "\nWhat time did you want to come in?"
+  echo -e "\nWhat time did you want to come in?"
   read SERVICE_TIME
-  INSERT_APPOINTMENT_RESULT=$($PSQL "INSERT INTO appointments(time, customer_id, service_id) VALUES('$SERVICE_TIME', $CUSTOMER_ID, $SERVICE_ID)")
+
+  INSERT_APPOINTMENT_RESULT=$($PSQL "INSERT INTO appointments(time, customer_id, service_id) VALUES('$SERVICE_TIME', $CUSTOMER_ID, $SERVICE_ID_SELECTED)")
+  if [[ ! -z $INSERT_APPOINTMENT_RESULT ]] 
+  then
+    echo -e "\nI have put you down for a $VALID_SERVICE at $SERVICE_TIME, $CUSTOMER_NAME."
+  fi
 }
 
 MAIN_MENU
